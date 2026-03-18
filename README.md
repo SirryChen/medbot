@@ -64,17 +64,15 @@ This makes MedBot more than a chatbot. It becomes a looped health workflow:
 
 ```mermaid
 flowchart TD
-    A[**Daily conversational interaction**<br/>MedBot automatically extracts symptom descriptions, medication information, and health measurements during normal user conversations.] --> B[MedBot orchestration layer]
-    B --> C[**Structured family archive**<br/>The extracted information is automatically organized into structured records for each household member.]
-    B --> D[**Extensible skill library**<br/>Built-in skills handle triage, reminders, monitoring, report processing, and medical record export, while additional medical skill libraries can be connected and updated over time.]
-    D --> E[**Skill safety checks**<br/>Each skill is checked through metadata validation, dependency checks, privacy constraints, and local-first execution rules before it is added or used.]
-    E --> D
+    A[Daily family health conversations] --> B[MedBot orchestration and routing]
+    B --> C[Automatically update the structured family health archive]
+    B --> D[Call the extensible skill library with safety checks]
     C --> D
-    D --> F[**Pre-visit preparation**<br/>Before a hospital visit, MedBot can generate a personal medical summary and provide triage guidance based on the user's archive.]
-    F --> G[**Hospital visit and clinical results**]
-    G --> H[**Post-visit update**<br/>After the visit, new diagnoses, medication changes, reports, and follow-up plans can be written back into the personal archive.]
+    D --> F[Pre-visit preparation with record export and triage]
+    F --> G[In-person care and diagnostic reports]
+    G --> H[Automatically update family records after the visit]
     H --> C
-    C --> I[**Ongoing household health support**<br/>The archive continuously drives household health risk monitoring, medication reminders, and diet and routine guidance.]
+    C --> I[Ongoing family health monitoring and support]
     I --> A
 ```
 

@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="medbot.png" alt="MedBot" width="500">
+  <img src="medbot-img.png" alt="MedBot" width="500">
   <h1>MedBot: Health AI Assistant for Individuals and Families</h1>
   <p>
     <a href="./README.md">English</a> | <a href="./README-zh.md">中文</a>

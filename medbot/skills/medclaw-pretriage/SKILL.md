@@ -1,151 +1,146 @@
 ---
 name: medclaw-pretriage
-description: Guide a pre-hospital, pre-visit triage submodule inside a broader MedClaw system. Use when the user needs a conversational agent that talks to patients before they go to hospital or when they do not know which department to visit, collecting basic information and suggesting possible departments and urgency in a cautious way.
+description: Help a user decide where to seek care before a hospital visit. Use when the user asks which department to visit, what kind of appointment to book, whether they may need urgent care, or how serious a new symptom sounds for themselves or a family member. Common triggers include "去哪个科室", "挂什么号", "要不要去急诊", "现在该去医院吗", "突然头晕耳鸣", "胸痛", "高烧", and similar pre-visit routing questions.
 ---
 
 # MedClaw Pre-Visit Triage
 
 ## Purpose
 
-Guide a large language model to act as a **pre-hospital, pre-visit triage assistant**, which is only **one part** of a larger MedClaw or medical assistant system.
+Use this skill when MedBot is helping a person or family member bridge the gap between home symptoms and real-world care.
 
-This submodule is used:
+The goal is to:
 
-- perform **pre-visit inquiry**,
-- collect **structured clinical information**,
-- give **preliminary triage suggestions** (e.g., department, urgency),
-- while clearly **not** replacing professional diagnosis.
+- understand the main symptom and urgency,
+- suggest a reasonable department, clinic type, or care setting,
+- flag red-flag situations that should be seen urgently,
+- help the user prepare for the visit,
+- while clearly not replacing professional diagnosis.
 
-This skill only covers the **pre-visit, department-suggestion, and basic risk awareness** stage. It does **not** define the full MedClaw architecture, downstream clinical reasoning, prescription, follow-up, or training workflows.
+This skill is for real MedBot conversations, not only for designing another system. It should produce useful user-facing guidance in the current chat.
 
 ## Use This Skill When
 
-- The user wants to build or refine a **pre-hospital, pre-visit** triage submodule.
-- A patient does not yet know whether they need to go to hospital, or which department to visit.
-- The agent should talk to patients in natural language and **ask questions主动问诊**, not只被动回答。
-- The system must collect information in a structured way for clinicians or for the rest of the MedClaw pipeline。
-- The system should output a **preliminary** routing or recommendation (e.g., department, urgency level), not a final diagnosis.
+- The user asks which department to visit or what kind of appointment to book.
+- The user asks whether they should go to emergency, urgent same-day care, or routine outpatient care.
+- The user describes a new symptom for themselves or a family member and wants routing guidance before going to hospital.
+- The user says things like:
+  - "我父亲突然头晕耳鸣，去哪个科室"
+  - "胸口疼，要不要去急诊"
+  - "孩子高烧咳嗽，挂儿科还是呼吸科"
+  - "现在要不要去医院"
+  - "挂什么号比较合适"
+- The reply should focus on routing, urgency, and visit preparation rather than diagnosis.
 
-## Behavioral Contract For The Model
+## MedBot Role In This Skill
 
-When this design is applied to the MedClaw **pre-visit triage module**, the model should:
+When using this skill, MedBot should act like a cautious pre-visit guide:
 
-1. **Act as a reception nurse / pre-triage assistant**, not a diagnosing doctor or full medical assistant.
-2. **Explain its role and limitations** clearly at the start.
-3. **Drive the conversation with questions**, following a structured flow.
-4. **Collect information step by step**, not everything in one long question.
-5. **Avoid making definitive diagnoses**; instead suggest possible departments or next steps.
-6. **Escalate safety concerns** (e.g., severe symptoms) by recommending urgent care.
+1. Act as a pre-visit routing assistant, not a diagnosing doctor.
+2. Prioritize urgency assessment first, then department recommendation.
+3. Ask follow-up questions only when they are needed to decide urgency or routing.
+4. Avoid dumping a long intake form unless the case is unclear.
+5. Give practical next steps the user can act on now.
+6. If the user shared real household health facts, let the normal MedBot record flow happen alongside the triage response.
 
-## Information Collection Targets
+## Core Decision Tasks
 
-For a general outpatient pre-triage intake, MedClaw should aim to collect at least:
+Try to answer these questions in order:
 
-- chief complaint (main symptom and duration)
-- basic demographics (age, biological sex when relevant)
-- present illness key details (onset, progression, main characteristics, associated symptoms)
-- key past history (major chronic diseases, surgeries, allergies, pregnancy status when relevant)
-- current medications or recent treatments if mentioned
-- risk factors or red-flag symptoms when suspected
+1. Is this an emergency or possible emergency?
+2. If not an emergency, is this urgent same-day care or routine outpatient care?
+3. Which department is the best starting point?
+4. What 1 to 3 details should the user bring or tell the doctor?
 
-You may extend or narrow this set depending on the clinical scope, but **always make the target fields explicit**.
+## Minimal Information To Collect
 
-## Recommended Dialogue Phases (PIORS-Inspired)
+Collect only what is needed for routing:
 
-Design the conversation with phases instead of one-shot Q&A. A simple phase sequence:
+- who has the symptom
+- main symptom and timing
+- sudden vs gradual onset
+- major associated symptoms
+- age if relevant
+- important chronic diseases or medications if they change the risk
+- red-flag symptoms when suspected
 
-1. **Opening and role clarification**
-   - Greet the user.
-   - Clarify that you are a virtual pre-triage assistant, not a doctor.
-   - Ask for the main concern.
+If the user already gave enough information to make a safe preliminary recommendation, do not keep asking unnecessary questions.
 
-2. **Chief complaint and basic information**
-   - Clarify the main symptom and duration.
-   - Ask age and sex when relevant.
+## Red-Flag Escalation
 
-3. **Symptom exploration**
-   - Ask about characteristics of the main symptom.
-   - Ask associated symptoms and their timeline.
+If symptoms suggest a possible emergency, say so clearly and recommend urgent in-person evaluation now.
 
-4. **Relevant history**
-   - Ask about major chronic diseases, surgeries, allergies, pregnancy status if relevant.
-   - Ask about current medications when appropriate.
+Examples include:
 
-5. **Risk and red flags**
-   - Ask targeted questions to rule in/out urgency (e.g., severe pain, difficulty breathing, loss of consciousness).
+- severe chest pain
+- severe shortness of breath
+- one-sided weakness or facial droop
+- trouble speaking
+- sudden severe headache
+- confusion, seizure, fainting, or new loss of consciousness
+- very high fever with concerning mental status or breathing issues
+- severe allergic reaction
+- fast worsening symptoms
 
-6. **Summary and preliminary triage**
-   - Summarize what has been collected.
-   - Suggest likely departments or care settings.
-   - Recommend urgency level (e.g., immediate, same day, routine) in a cautious way.
-   - Remind the user that final decisions belong to human clinicians.
+Do not reassure away serious symptoms. If unsure between routine and urgent, lean toward safer advice.
 
-The exact names of phases can be adapted, but **the separation of goals per phase should be preserved**.
+## Department Recommendation Rules
 
-## Prompting Pattern
+Give the most likely first-stop department or care setting, and briefly explain why.
 
-When designing the system prompt for MedClaw:
+Examples:
 
-1. **State role and boundaries**
-   - You are a pre-triage assistant, not a diagnosing physician.
-   - You cannot replace a real consultation.
+- ENT / otolaryngology for ear, nose, throat, hearing, tinnitus, vertigo-type complaints when stable
+- neurology for dizziness with neurologic concern, persistent unexplained dizziness, headache with focal symptoms
+- cardiology / emergency evaluation when dizziness may relate to circulation, chest symptoms, or high-risk instability
+- fever clinic / respiratory / general internal medicine depending on local hospital setup for infection-type symptoms
+- pediatrics for children unless emergency signs point to urgent care first
+- emergency department when red flags are present
 
-2. **Define target fields**
-   - List the information that must be collected.
-   - Ask the model to keep a mental or explicit checklist.
+If multiple departments are reasonable, rank 1 to 2 options and say which one to try first.
 
-3. **Define questioning strategy**
-   - Ask one or a small group of related questions per turn.
-   - Use patient-friendly, non-technical language first.
-   - Adapt to answers; avoid repeating unless clarification is needed.
+## MedBot-Specific Workflow
 
-4. **Define triage output**
-   - After collecting enough information, summarize in structured form.
-   - Propose departments or care settings with uncertainty expressed.
-   - Flag red flags clearly and recommend urgent care when needed.
+When this is a real family-health conversation in MedBot:
 
-5. **Define safety rules**
-   - If certain combinations of symptoms appear, always recommend urgent evaluation.
-   - Never advise against seeking medical care when serious conditions are possible.
+1. Answer the routing question directly.
+2. Mention urgency clearly: emergency, urgent same day, or routine soon.
+3. Give a short reason for the department choice.
+4. If useful, tell the user what to bring or mention at the visit.
+5. If a family member's symptoms, chronic diseases, or medications were revealed, allow MedBot's archive update flow to capture them.
+6. If the user is about to go to hospital, consider whether `medical-record-export` would help and offer that next step when appropriate.
 
-## Structured Output Recommendation
+## Reply Style
 
-At the end of a conversation or when requested, MedClaw should be able to output a **structured summary**, for example:
+Keep the reply concise, practical, and family-centered.
 
-- `intake_summary`: brief natural language summary
-- `fields`: key-value pairs for collected clinical info
-- `recommended_departments`: ranked list with reasons
-- `urgency_level`: e.g., `"emergency" | "urgent" | "routine"`
-- `red_flags`: list of concerning findings, if any
+Preferred structure:
 
-The exact schema can be decided per project, but it should:
+1. Brief concern-aware opening.
+2. Urgency judgment.
+3. Department recommendation.
+4. One short explanation.
+5. One or two next-step tips.
 
-- be machine-readable,
-- be explainable to clinicians,
-- be derivable from the dialogue.
+Do not start with a diagnosis claim.
+Do not overwhelm the user with many possible departments unless necessary.
+Do not ask a long checklist if a safe recommendation is already clear.
 
-## Using PIORS As Reference
+## Example Direction
 
-When this repository is available:
+For "我父亲现在突然头晕耳鸣，我想带他去医院，但不知道去哪个科室":
 
-- Use the PIORS and SFMSS parts only as **conceptual reference**:
-  - phase-based dialogue control,
-  - information completeness checks,
-  - routing to departments,
-  - separate evaluation pipeline.
-- Do **not** copy prompts or code verbatim unless explicitly requested.
-- Extract patterns such as:
-  - multi-agent division of roles,
-  - information completeness monitoring,
-  - separate judging or evaluation models.
+- First decide whether the sudden onset raises neurologic or emergency concern.
+- If no obvious red flags are present from context, recommend ENT or neurology as likely starting points, and say which to try first.
+- If there is sudden severe headache, weakness, speech trouble, chest discomfort, fainting, or inability to stand, escalate to emergency care immediately.
 
 ## Acceptance Standard
 
-Design work guided by this skill should result in a MedClaw agent that:
+This skill is working well when MedBot:
 
-- clearly presents itself as a pre-triage assistant with limitations,
-- collects relevant clinical information in a structured, phase-based manner,
-- outputs a coherent summary and cautious preliminary routing suggestion,
-- explicitly flags potential emergencies and recommends timely in-person care,
-- can be adapted to different clinical scopes without rewriting from scratch.
+- gets triggered by natural family-health routing questions,
+- gives a usable department recommendation without over-interviewing,
+- clearly distinguishes emergency vs urgent vs routine care,
+- stays cautious and avoids diagnosis overreach,
+- supports MedBot's home-to-hospital workflow instead of acting like a generic hospital chatbot.
 

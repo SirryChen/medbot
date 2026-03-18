@@ -83,7 +83,7 @@ flowchart TD
 | Medical | `medclaw-pretriage` | Pre-hospital and pre-visit triage guidance |
 | Medical | `medication-reminder` | Medication reminders with record sync |
 | Medical | `risk-monitoring` | Daily household health risk scan |
-| Medical | `drug-interaction-check` | Medication interaction checks |
+| Medical | `drug-interaction-check` | Medication interaction checks using [DDInter database](https://pubmed.ncbi.nlm.nih.gov/34634800/) |
 | Medical | `medical-record-export` | Medical record export |
 | Medical | `medical-report-ingest` | Medical report ingestion and summarization |
 | Health | `diet-routine-guidance` | Diet, sleep, and routine guidance |
